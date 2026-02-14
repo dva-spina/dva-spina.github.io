@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&display=swap');
+
+:root {
+  --transition-speed: 1.2s;
+  --bezier-curve: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Playfair Display', serif;
+  text-transform: lowercase;
+  margin: 0;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--transition-speed) var(--bezier-curve), 
+              color var(--transition-speed) var(--bezier-curve);
+}
+
+/* Ensure no focus outline or background appears on buttons */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus, button:active {
+  outline: none !important;
+  -webkit-appearance: none;
+}
+
+.transition-theme {
+  transition: background-color var(--transition-speed) var(--bezier-curve), 
+              color var(--transition-speed) var(--bezier-curve);
+}
+
+/* Custom noise overlay blending */
+.noise-overlay {
+  mix-blend-mode: overlay;
+  background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+}
