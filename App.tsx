@@ -1,0 +1,84 @@
+
+import React, { useState, useRef, useEffect } from 'react';
+import { CrystalLogo } from './components/CrystalLogo';
+import { Theme } from './types';
+
+const MOUNT_POINT = "http://azurecast.d5cfbc9179a7f4e999a86d20bd0ef465.duckdns.org/listen/%D0%B4%D0%B2%D0%B0_%D1%81%D0%BF%D0%B8%D0%BD%D0%B0/radio.mp3";
+
+const App: React.FC = () => {
+  const [theme, setTheme] = useState<Theme>('light');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  const togglePlay = async () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      // Pause and clear the source to stop network activity and reset buffer
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current.load();
+      setIsPlaying(false);
+    } else {
+      try {
+        // Set source right before playing to ensure we get the live stream head
+        audioRef.current.src = MOUNT_POINT;
+        audioRef.current.load();
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch (err: any) {
+        // Ignore AbortError as it's often a side effect of rapid toggling or intentional resets
+        if (err.name !== 'AbortError') {
+          console.error("Playback failed:", err);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.body.className = theme === 'light' ? 'bg-white text-black' : 'bg-black text-white';
+  }, [theme]);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-between p-8 font-serif transition-colors duration-700">
+      {/* Header - Only theme switch, no text */}
+      <header className="w-full max-w-4xl flex justify-end items-center z-10">
+        <button 
+          onClick={toggleTheme}
+          className="text-[10px] border border-current px-2 py-0.5 rounded-full hover:opacity-50 transition-opacity uppercase tracking-widest opacity-30"
+        >
+          {theme === 'light' ? 'dark' : 'light'}
+        </button>
+      </header>
+
+      {/* Main Content: Centered Logo */}
+      <main className="flex-1 flex flex-col items-center justify-center w-full relative">
+        <CrystalLogo theme={theme} isPlaying={isPlaying} onClick={togglePlay} />
+      </main>
+
+      {/* Hidden Audio Player - src managed dynamically in togglePlay */}
+      <audio ref={audioRef} preload="none" />
+
+      {/* Footer */}
+      <footer className="w-full max-w-4xl flex justify-center items-center py-4">
+        <a 
+          href="https://band.link/dvaspina" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-xs tracking-widest hover:italic transition-all duration-300 opacity-30 hover:opacity-80"
+        >
+          telegram
+        </a>
+      </footer>
+
+      {/* Minimal Visual Noise Overlay */}
+      <div className={`fixed inset-0 pointer-events-none opacity-[0.03] transition-opacity duration-1000 ${theme === 'light' ? 'bg-black' : 'bg-white'}`} style={{ mixBlendMode: 'overlay', backgroundImage: 'url("https://www.transparenttextures.com/patterns/p6.png")' }} />
+    </div>
+  );
+};
+
+export default App;
