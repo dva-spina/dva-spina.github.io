@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { NowPlaying } from './nowPlaying';
 
 interface CrystalLogoProps {
   theme: 'light' | 'dark';
@@ -49,6 +50,8 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClic
           </svg>
         </div>
       </button>
+      
+      <NowPlaying />
     
     </div>
   );
