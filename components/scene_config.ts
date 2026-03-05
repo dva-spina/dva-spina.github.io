@@ -1,3 +1,4 @@
+// @ts-ignore
 import { Howl } from 'howler';
 
 export const SFX: Record<string, Howl> = {

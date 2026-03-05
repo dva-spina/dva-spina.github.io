@@ -37,7 +37,7 @@ export const NowPlaying: React.FC = () => {
 
   return (
     <div className="crystal-text">
-      Now Playing: {currentTitle}
+      Now Playing: {currentTitle} – {currentArtist}
     </div>
   );
 };

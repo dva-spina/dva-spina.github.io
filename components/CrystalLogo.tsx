@@ -12,7 +12,6 @@ interface CrystalLogoProps {
 }
 
 export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClick }) => {
-  const textColor = theme === 'light' ? 'text-black' : 'text-white';
   return (
     
     <div className="flex flex-col items-center gap-4 relative">
@@ -48,7 +47,7 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClic
         </div>
       </button>
       
-      <NowPlaying theme={theme} />
+      <NowPlaying />
     
     </div>
   );

@@ -1,9 +1,12 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CrystalLogo } from './components/CrystalLogo';
 import { Theme } from './types';
 import { LinkFooters } from './components/linkfooters';
 
 const MOUNT_POINT = "https://azurecast.d5cfbc9179a7f4e999a86d20bd0ef465.duckdns.org/listen/%D0%B4%D0%B2%D0%B0_%D1%81%D0%BF%D0%B8%D0%BD%D0%B0/radio.mp3";
+
+const globalAudio = new Audio();
+globalAudio.preload = "auto";
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -14,25 +17,25 @@ const App: React.FC = () => {
   });
 
   const [isMuted, setIsMuted] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   }, []);
 
   const toggleMute = useCallback(() => {
-    if (!audioRef.current) return;
     const nextMuted = !isMuted;
-    audioRef.current.muted = nextMuted;
+    
+    globalAudio.muted = nextMuted;
     setIsMuted(nextMuted);
     
-    if (!nextMuted && audioRef.current.paused) {
-      audioRef.current.play().catch(() => {
-        console.warn("Playback blocked by browser policy. Interaction needed.");
+    if (!nextMuted && globalAudio.paused) {
+      globalAudio.play().catch(() => {
+        console.warn("Playback blocked by browser policy.");
       });
     }
   }, [isMuted]);
 
+  // theme change
   useEffect(() => {
     document.body.className = theme === 'light' ? 'bg-white text-black' : 'bg-black text-white';
 
@@ -45,16 +48,17 @@ const App: React.FC = () => {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
+  // audio setup
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (globalAudio.src !== MOUNT_POINT) {
+      globalAudio.src = MOUNT_POINT;
+    }
 
-    audio.src = MOUNT_POINT;
-    audio.muted = isMuted;
+    globalAudio.muted = isMuted;
 
     const startPlayback = async () => {
       try {
-        await audio.play();
+        await globalAudio.play();
       } catch (err) {
         console.log("Autoplay waiting for user interaction");
       }
@@ -63,15 +67,14 @@ const App: React.FC = () => {
     startPlayback();
 
     return () => {
-      audio.pause();
-      audio.src = ""; 
-      audio.load();   
     };
   }, []);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.muted = isMuted;
+    globalAudio.muted = isMuted;
+    
+    if (!isMuted && globalAudio.paused) {
+        globalAudio.play().catch(() => {});
     }
   }, [isMuted]);
 
@@ -90,12 +93,7 @@ const App: React.FC = () => {
         <CrystalLogo theme={theme} isMuted={isMuted} onClick={toggleMute} />
       </main>
 
-      <audio
-        ref={audioRef}
-        preload="auto"
-      />
-
-      <LinkFooters theme={theme}/>
+      <LinkFooters />
 
       <div className={`fixed inset-0 pointer-events-none opacity-[0.03] transition-opacity duration-1000 noise-overlay ${theme === 'light' ? 'bg-black' : 'bg-white'}`} />
     </div>

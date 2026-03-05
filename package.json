@@ -19,6 +19,7 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
+    "@types/howler": "^2.2.12",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/three": "^0.182.0",
