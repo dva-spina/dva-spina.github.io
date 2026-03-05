@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { CrystalLogo } from './components/CrystalLogo';
 import { Theme } from './types';
 
-const MOUNT_POINT = "http://azurecast.d5cfbc9179a7f4e999a86d20bd0ef465.duckdns.org/listen/%D0%B4%D0%B2%D0%B0_%D1%81%D0%BF%D0%B8%D0%BD%D0%B0/radio.mp3";
+const MOUNT_POINT = "https://azurecast.d5cfbc9179a7f4e999a86d20bd0ef465.duckdns.org/listen/%D0%B4%D0%B2%D0%B0_%D1%81%D0%BF%D0%B8%D0%BD%D0%B0/radio.mp3";
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
@@ -23,9 +23,9 @@ const App: React.FC = () => {
     setIsMuted(nextMuted);
 
     // if we just unmuted and playback hasn't started yet, try to kick it off
-    if (!nextMuted && audioRef.current.paused) {
-      audioRef.current.play().catch(() => {});
-    }
+    // if (!nextMuted && audioRef.current.paused) {
+    //   audioRef.current.play().catch(() => {});
+    // }
   };
 
   useEffect(() => {
@@ -36,6 +36,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.src = MOUNT_POINT;
+    audioRef.current.load(); // Reset stream for quality
     audioRef.current.muted = isMuted;
     audioRef.current.play().catch(() => {});
   }, []);
@@ -68,7 +69,7 @@ const App: React.FC = () => {
       <audio
         ref={audioRef}
         src={MOUNT_POINT}
-        preload="none"
+        preload="auto"
         muted={isMuted}
         autoPlay
       />
