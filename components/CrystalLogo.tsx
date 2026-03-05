@@ -19,7 +19,7 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClic
         Press to Play
       </div>
       <button
-        onClick={onClick}
+        onClick={onClick} 
         className={`crystal-button ${!isMuted ? 'unmuted' : ''}`}
         aria-label={isMuted ? "Unmute Radio" : "Mute Radio"}
       >

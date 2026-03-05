@@ -11,7 +11,7 @@ export const LinkFooters: React.FC = () => {
         {links.map((item, index) => {
           return (
             <a key={index} href={item.url} rel="noopener noreferrer" className="footer-nav-link" target="_blank" onMouseEnter={() => SFX.hover_pop.play()}>
-              {item.name}
+              {item.name} 
             </a>
           
         )
