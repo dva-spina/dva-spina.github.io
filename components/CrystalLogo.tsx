@@ -1,6 +1,9 @@
 
 import React from 'react';
+import './CrystalLogo.css';
 import { NowPlaying } from './nowPlaying';
+import { Theme } from '../types';
+
 
 interface CrystalLogoProps {
   theme: 'light' | 'dark';
@@ -9,30 +12,24 @@ interface CrystalLogoProps {
 }
 
 export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClick }) => {
-  // Define a dynamic shadow based on whether the stream is audible
-  const shadowStyle = !isMuted 
-    ? {
-        filter: theme === 'light' 
-          ? 'drop-shadow(0 0 12px rgba(0,0,0,0.15))' 
-          : 'drop-shadow(0 0 20px rgba(255,255,255,0.2))'
-      } 
-    : {};
-
+  const textColor = theme === 'light' ? 'text-black' : 'text-white';
   return (
-    <div className="flex flex-col items-center gap-4">
+    
+    <div className="flex flex-col items-center gap-4 relative">
+      <div className={`crystal-text absolute -top-6 transition-opacity ${isMuted ? 'opacity-100' : 'opacity-0'}`}>
+        Press to Play
+      </div>
       <button
         onClick={onClick}
-        className="relative group transition-all duration-500 ease-out transform hover:scale-[1.08] active:scale-[0.95] focus:outline-none focus:ring-0 active:outline-none bg-transparent border-none appearance-none select-none flex items-center justify-center p-8"
-        style={{ WebkitTapHighlightColor: 'transparent' }}
+        className={`crystal-button ${!isMuted ? 'unmuted' : ''}`}
         aria-label={isMuted ? "Unmute Radio" : "Mute Radio"}
       >
         <div 
-          className="transition-all duration-1000 pointer-events-none"
-          style={shadowStyle}
+          className={`crystal-svg ${!isMuted ? (theme === 'light' ? 'crystal-shadow-light' : 'crystal-shadow-dark') : ''}`}
         >
           <svg
-            width="96"
-            height="32"
+            width="140"
+            height="48"
             viewBox="0 0 1909 625"
             className={`transition-colors duration-1000 ${theme === 'light' ? 'fill-black' : 'fill-white'}`}
             xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +48,7 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClic
         </div>
       </button>
       
-      <NowPlaying />
+      <NowPlaying theme={theme} />
     
     </div>
   );

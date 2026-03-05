@@ -1,0 +1,110 @@
+/* CrystalLogo.css */
+
+.crystal-button {
+  position: relative;
+  transition: all 0.5s ease-out;
+  transform: scale(1);
+  background: transparent;
+  border: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  outline: none;
+  user-select: none;
+}
+
+.crystal-button:hover {
+  transform: scale(1.08);
+}
+
+.crystal-button:active {
+  transform: scale(0.95);
+}
+
+.crystal-button.unmuted {
+  transform: scale(1.4);
+}
+
+.crystal-svg {
+  transition: all 1s;
+  pointer-events: none;
+}
+
+.crystal-shadow-light {
+  filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.15));
+}
+
+.crystal-shadow-dark {
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
+}
+
+.crystal-text {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  transition: all 1s;
+  text-transform: uppercase;
+  opacity: 1;
+}
+
+
+/* Контейнер футера */
+.footer-overlay-links {
+  display: flex;
+  flex-direction: row; /* Горизонтальное расположение */
+  justify-content: center; /* Центрирование */
+  align-items: center;
+  gap: 100px; 
+  width: 100%;
+  pointer-events: auto;
+}
+
+.footer-nav-link {
+  text-decoration: none;
+  color: inherit; 
+  letter-spacing: 1px;
+  position: relative;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.footer-nav-link:hover {
+  opacity: 1;
+}
+
+/* Звездочка при наведении */
+.footer-nav-link::before {
+  content: '*'; 
+  position: absolute;
+  left: -12px; /* Чуть увеличил отступ для читаемости */
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.footer-nav-link:hover::before {
+  opacity: 1;
+}
+
+/* Стиль для текстовых элементов со скобками [ ] */
+.text-only {
+    opacity: 0.6; /* Текст чуть ярче ссылок по умолчанию */
+}
+
+.text-only::before {
+    content: "[ "; 
+    position: static; /* Перезаписываем абсолютное позиционирование звездочки */
+    opacity: 1;
+}
+
+.text-only::after { 
+    content: " ]"; 
+    position: static;
+    opacity: 1;
+}
+
+/* Если текстовый элемент — это ссылка, убираем звездочку, чтобы не было перебора */
+.text-only:hover::before {
+    content: "[ "; 
+}

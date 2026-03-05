@@ -12,6 +12,8 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "dependencies": "^0.0.1",
+    "howler": "^2.2.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "three": "^0.182.0"

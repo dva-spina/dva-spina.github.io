@@ -1,47 +1,74 @@
-
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { CrystalLogo } from './components/CrystalLogo';
 import { Theme } from './types';
+import { LinkFooters } from './components/linkfooters';
 
 const MOUNT_POINT = "https://azurecast.d5cfbc9179a7f4e999a86d20bd0ef465.duckdns.org/listen/%D0%B4%D0%B2%D0%B0_%D1%81%D0%BF%D0%B8%D0%BD%D0%B0/radio.mp3";
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<Theme>('light');
-  // the radio is kept playing in the background; we only toggle the muted state
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  });
+
   const [isMuted, setIsMuted] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  }, []);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     if (!audioRef.current) return;
-
-    const nextMuted = !audioRef.current.muted;
+    const nextMuted = !isMuted;
     audioRef.current.muted = nextMuted;
     setIsMuted(nextMuted);
-
-    // if we just unmuted and playback hasn't started yet, try to kick it off
-    // if (!nextMuted && audioRef.current.paused) {
-    //   audioRef.current.play().catch(() => {});
-    // }
-  };
+    
+    if (!nextMuted && audioRef.current.paused) {
+      audioRef.current.play().catch(() => {
+        console.warn("Playback blocked by browser policy. Interaction needed.");
+      });
+    }
+  }, [isMuted]);
 
   useEffect(() => {
     document.body.className = theme === 'light' ? 'bg-white text-black' : 'bg-black text-white';
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setTheme(e.matches ? 'dark' : 'light');
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
-  // ensure the element has the source and begins playing muted on mount
   useEffect(() => {
-    if (!audioRef.current) return;
-    audioRef.current.src = MOUNT_POINT;
-    audioRef.current.load(); // Reset stream for quality
-    audioRef.current.muted = isMuted;
-    audioRef.current.play().catch(() => {});
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.src = MOUNT_POINT;
+    audio.muted = isMuted;
+
+    const startPlayback = async () => {
+      try {
+        await audio.play();
+      } catch (err) {
+        console.log("Autoplay waiting for user interaction");
+      }
+    };
+
+    startPlayback();
+
+    return () => {
+      audio.pause();
+      audio.src = ""; 
+      audio.load();   
+    };
   }, []);
 
-  // keep element muted state in sync if it changes elsewhere
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.muted = isMuted;
@@ -50,7 +77,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between p-8 transition-colors duration-700">
-      {/* Header - Only theme switch, no text */}
       <header className="w-full max-w-4xl flex justify-end items-center z-10">
         <button 
           onClick={toggleTheme}
@@ -60,33 +86,17 @@ const App: React.FC = () => {
         </button>
       </header>
 
-      {/* Main Content: Centered Logo */}
       <main className="flex-1 flex flex-col items-center justify-center w-full relative">
         <CrystalLogo theme={theme} isMuted={isMuted} onClick={toggleMute} />
       </main>
 
-      {/* Hidden audio element; always kept connected, volume toggled via mute */}
       <audio
         ref={audioRef}
-        src={MOUNT_POINT}
         preload="auto"
-        muted={isMuted}
-        autoPlay
       />
 
-      {/* Footer */}
-      <footer className="w-full max-w-4xl flex justify-center items-center py-4">
-        <a 
-          href="https://t.me/dvaspina" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-xs tracking-widest hover:italic transition-all duration-300 opacity-30 hover:opacity-80"
-        >
-          telegram
-        </a>
-      </footer>
+      <LinkFooters theme={theme}/>
 
-      {/* Minimal Visual Noise Overlay - using class from index.css */}
       <div className={`fixed inset-0 pointer-events-none opacity-[0.03] transition-opacity duration-1000 noise-overlay ${theme === 'light' ? 'bg-black' : 'bg-white'}`} />
     </div>
   );
