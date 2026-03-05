@@ -49,12 +49,7 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClic
           </svg>
         </div>
       </button>
-      
-      <div 
-        className={`text-[11px] tracking-[0.2em] transition-all duration-1000 uppercase opacity-0 transform translate-y-2 ${!isMuted ? 'opacity-30 translate-y-0' : ''}`}
-      >
-        в эфире
-      </div>
+    
     </div>
   );
 };
