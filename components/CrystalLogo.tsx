@@ -3,13 +3,13 @@ import React from 'react';
 
 interface CrystalLogoProps {
   theme: 'light' | 'dark';
-  isPlaying: boolean;
+  isMuted: boolean;
   onClick: () => void;
 }
 
-export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isPlaying, onClick }) => {
-  // Define a dynamic shadow based on the play state and theme
-  const shadowStyle = isPlaying 
+export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClick }) => {
+  // Define a dynamic shadow based on whether the stream is audible
+  const shadowStyle = !isMuted 
     ? {
         filter: theme === 'light' 
           ? 'drop-shadow(0 0 12px rgba(0,0,0,0.15))' 
@@ -23,7 +23,7 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isPlaying, onCl
         onClick={onClick}
         className="relative group transition-all duration-500 ease-out transform hover:scale-[1.08] active:scale-[0.95] focus:outline-none focus:ring-0 active:outline-none bg-transparent border-none appearance-none select-none flex items-center justify-center p-8"
         style={{ WebkitTapHighlightColor: 'transparent' }}
-        aria-label={isPlaying ? "Mute Radio" : "Play Radio"}
+        aria-label={isMuted ? "Unmute Radio" : "Mute Radio"}
       >
         <div 
           className="transition-all duration-1000 pointer-events-none"
@@ -51,7 +51,7 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isPlaying, onCl
       </button>
       
       <div 
-        className={`text-[11px] tracking-[0.2em] transition-all duration-1000 uppercase opacity-0 transform translate-y-2 ${isPlaying ? 'opacity-30 translate-y-0' : ''}`}
+        className={`text-[11px] tracking-[0.2em] transition-all duration-1000 uppercase opacity-0 transform translate-y-2 ${!isMuted ? 'opacity-30 translate-y-0' : ''}`}
       >
         в эфире
       </div>

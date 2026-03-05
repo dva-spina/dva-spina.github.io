@@ -2,19 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&display=swap');
-
 :root {
   --transition-speed: 1.2s;
   --bezier-curve: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
-  font-family: 'Playfair Display', serif;
+  font-family: serif;
   text-transform: lowercase;
   margin: 0;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
+  color: #000000;
   transition: background-color var(--transition-speed) var(--bezier-curve), 
               color var(--transition-speed) var(--bezier-curve);
 }
@@ -24,9 +23,16 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-button:focus, button:active {
+
+button:focus {
   outline: none !important;
   -webkit-appearance: none;
+} 
+
+button:active {
+  outline: none !important;
+  -webkit-appearance: none;
+  transform: scale(1.2);
 }
 
 .transition-theme {
@@ -38,4 +44,13 @@ button:focus, button:active {
 .noise-overlay {
   mix-blend-mode: overlay;
   background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+}
+
+/* System theme colors for elements that use currentColor (including inline SVGs) */
+@media (prefers-color-scheme: dark) {
+  body { color: #ffffff; }
+}
+
+@media (prefers-color-scheme: light) {
+  body { color: #000000; }
 }

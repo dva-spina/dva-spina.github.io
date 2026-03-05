@@ -7,41 +7,45 @@ const MOUNT_POINT = "http://azurecast.d5cfbc9179a7f4e999a86d20bd0ef465.duckdns.o
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
-  const [isPlaying, setIsPlaying] = useState(false);
+  // the radio is kept playing in the background; we only toggle the muted state
+  const [isMuted, setIsMuted] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  const togglePlay = async () => {
+  const toggleMute = () => {
     if (!audioRef.current) return;
 
-    if (isPlaying) {
-      // Pause and clear the source to stop network activity and reset buffer
-      audioRef.current.pause();
-      audioRef.current.src = "";
-      audioRef.current.load();
-      setIsPlaying(false);
-    } else {
-      try {
-        // Set source right before playing to ensure we get the live stream head
-        audioRef.current.src = MOUNT_POINT;
-        audioRef.current.load();
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (err: any) {
-        // Ignore AbortError as it's often a side effect of rapid toggling or intentional resets
-        if (err.name !== 'AbortError') {
-          console.error("Playback failed:", err);
-        }
-      }
+    const nextMuted = !audioRef.current.muted;
+    audioRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
+
+    // if we just unmuted and playback hasn't started yet, try to kick it off
+    if (!nextMuted && audioRef.current.paused) {
+      audioRef.current.play().catch(() => {});
     }
   };
 
   useEffect(() => {
     document.body.className = theme === 'light' ? 'bg-white text-black' : 'bg-black text-white';
   }, [theme]);
+
+  // ensure the element has the source and begins playing muted on mount
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.src = MOUNT_POINT;
+    audioRef.current.muted = isMuted;
+    audioRef.current.play().catch(() => {});
+  }, []);
+
+  // keep element muted state in sync if it changes elsewhere
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between p-8 transition-colors duration-700">
@@ -57,16 +61,22 @@ const App: React.FC = () => {
 
       {/* Main Content: Centered Logo */}
       <main className="flex-1 flex flex-col items-center justify-center w-full relative">
-        <CrystalLogo theme={theme} isPlaying={isPlaying} onClick={togglePlay} />
+        <CrystalLogo theme={theme} isMuted={isMuted} onClick={toggleMute} />
       </main>
 
-      {/* Hidden Audio Player - src managed dynamically in togglePlay */}
-      <audio ref={audioRef} preload="none" />
+      {/* Hidden audio element; always kept connected, volume toggled via mute */}
+      <audio
+        ref={audioRef}
+        src={MOUNT_POINT}
+        preload="none"
+        muted={isMuted}
+        autoPlay
+      />
 
       {/* Footer */}
       <footer className="w-full max-w-4xl flex justify-center items-center py-4">
         <a 
-          href="https://band.link/dvaspina" 
+          href="https://t.me/dvaspina" 
           target="_blank" 
           rel="noopener noreferrer"
           className="text-xs tracking-widest hover:italic transition-all duration-300 opacity-30 hover:opacity-80"
