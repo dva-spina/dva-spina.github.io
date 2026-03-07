@@ -78,6 +78,8 @@ const releaseSharedAudio = (): void => {
 
 const App: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const syncedAudioRef = useRef<HTMLAudioElement | null>(null);
+  const detachAudioSyncRef = useRef<(() => void) | null>(null);
   const hasAudioLeaseRef = useRef(false);
   const channelRef = useRef<BroadcastChannel | null>(null);
   const tabIdRef = useRef<string>(`tab-${Math.random().toString(36).slice(2)}-${Date.now()}`);
@@ -89,7 +91,45 @@ const App: React.FC = () => {
     return 'light';
   });
 
-  const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const updatePlaybackState = useCallback((audio: HTMLAudioElement) => {
+    setIsPlaying(!audio.muted && !audio.paused);
+
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+    }
+  }, []);
+
+  const syncAudioState = useCallback((audio: HTMLAudioElement) => {
+    if (syncedAudioRef.current === audio) {
+      return;
+    }
+
+    detachAudioSyncRef.current?.();
+
+    const handleStateChange = () => {
+      updatePlaybackState(audio);
+    };
+
+    audio.addEventListener('play', handleStateChange);
+    audio.addEventListener('pause', handleStateChange);
+    audio.addEventListener('ended', handleStateChange);
+    audio.addEventListener('volumechange', handleStateChange);
+
+    syncedAudioRef.current = audio;
+    detachAudioSyncRef.current = () => {
+      audio.removeEventListener('play', handleStateChange);
+      audio.removeEventListener('pause', handleStateChange);
+      audio.removeEventListener('ended', handleStateChange);
+      audio.removeEventListener('volumechange', handleStateChange);
+      if (syncedAudioRef.current === audio) {
+        syncedAudioRef.current = null;
+      }
+    };
+
+    updatePlaybackState(audio);
+  }, [updatePlaybackState]);
 
   const ensureAudioLease = useCallback((): HTMLAudioElement | null => {
     if (audioRef.current) {
@@ -103,15 +143,19 @@ const App: React.FC = () => {
 
     hasAudioLeaseRef.current = true;
     audioRef.current = audio;
+    syncAudioState(audio);
 
     return audio;
-  }, []);
+  }, [syncAudioState]);
 
   const releaseAudioLease = useCallback((shouldHardStop: boolean): void => {
     const audio = audioRef.current;
     if (audio && shouldHardStop) {
       hardStopAudio(audio);
     }
+
+    detachAudioSyncRef.current?.();
+    detachAudioSyncRef.current = null;
 
     audioRef.current = null;
 
@@ -125,24 +169,27 @@ const App: React.FC = () => {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   }, []);
 
-  const toggleMute = useCallback(() => {
-    setIsMuted(prevMuted => {
-      const nextMuted = !prevMuted;
-      if (nextMuted) {
+  const togglePlayback = useCallback(() => {
+    setIsPlaying(prevPlaying => {
+      const nextPlaying = !prevPlaying;
+      if (!nextPlaying) {
         const currentAudio = audioRef.current;
         if (currentAudio) {
+          currentAudio.pause();
           currentAudio.muted = true;
+          updatePlaybackState(currentAudio);
         }
 
-        return true;
+        return false;
       }
 
       const currentAudio = ensureAudioLease();
       if (!currentAudio) {
-        return prevMuted;
+        return prevPlaying;
       }
 
       currentAudio.muted = false;
+      syncAudioState(currentAudio);
 
       if (currentAudio.paused) {
         currentAudio.play().catch(() => {
@@ -155,9 +202,9 @@ const App: React.FC = () => {
         tabId: tabIdRef.current,
       } satisfies PlaybackBroadcastMessage);
 
-      return false;
+      return true;
     });
-  }, [ensureAudioLease]);
+  }, [ensureAudioLease, syncAudioState, updatePlaybackState]);
 
   // theme change
   useEffect(() => {
@@ -189,7 +236,7 @@ const App: React.FC = () => {
       }
 
       releaseAudioLease(true);
-      setIsMuted(true);
+      setIsPlaying(false);
     };
 
     if ('BroadcastChannel' in window) {
@@ -215,13 +262,54 @@ const App: React.FC = () => {
   }, [releaseAudioLease]);
 
   useEffect(() => {
+    if (!('mediaSession' in navigator)) {
+      return;
+    }
+
+    const handleSystemPlay = () => {
+      const audio = ensureAudioLease();
+      if (!audio) {
+        return;
+      }
+
+      audio.muted = false;
+      syncAudioState(audio);
+
+      audio.play().catch(() => {
+        console.warn('Playback blocked by browser policy.');
+      });
+    };
+
+    const handleSystemPause = () => {
+      const audio = audioRef.current;
+      if (!audio) {
+        return;
+      }
+
+      audio.pause();
+      audio.muted = true;
+      updatePlaybackState(audio);
+    };
+
+    navigator.mediaSession.setActionHandler('play', handleSystemPlay);
+    navigator.mediaSession.setActionHandler('pause', handleSystemPause);
+    navigator.mediaSession.setActionHandler('stop', handleSystemPause);
+
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null);
+      navigator.mediaSession.setActionHandler('pause', null);
+      navigator.mediaSession.setActionHandler('stop', null);
+    };
+  }, [ensureAudioLease, syncAudioState, updatePlaybackState]);
+
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) {
       return;
     }
 
-    audio.muted = isMuted;
-  }, [isMuted]);
+    audio.muted = !isPlaying;
+  }, [isPlaying]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between p-8 transition-colors duration-700">
@@ -235,7 +323,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center w-full relative">
-        <CrystalLogo theme={theme} isMuted={isMuted} onClick={toggleMute} />
+        <CrystalLogo theme={theme} isPlaying={isPlaying} onClick={togglePlayback} />
       </main>
 
       <LinkFooters />

@@ -7,24 +7,24 @@ import { Theme } from '../types';
 
 interface CrystalLogoProps {
   theme: 'light' | 'dark';
-  isMuted: boolean;
+  isPlaying: boolean;
   onClick: () => void;
 }
 
-export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClick }) => {
+export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isPlaying, onClick }) => {
   return (
     
     <div className="flex flex-col items-center gap-4 relative">
-      <div className={`crystal-text absolute -top-6 transition-opacity ${isMuted ? 'opacity-100' : 'opacity-0'}`}>
-        Press to Enable Sound
+      <div className={`crystal-text absolute -top-6 transition-opacity ${!isPlaying ? 'opacity-100' : 'opacity-0'}`}>
+        Press to Play
       </div>
       <button
         onClick={onClick} 
-        className={`crystal-button ${!isMuted ? 'unmuted' : ''}`}
-        aria-label={isMuted ? "Enable sound" : "Disable sound"}
+        className={`crystal-button ${isPlaying ? 'unmuted' : ''}`}
+        aria-label={isPlaying ? "Disable sound" : "Enable sound"}
       >
         <div 
-          className={`crystal-svg ${!isMuted ? (theme === 'light' ? 'crystal-shadow-light' : 'crystal-shadow-dark') : ''}`}
+          className={`crystal-svg ${isPlaying ? (theme === 'light' ? 'crystal-shadow-light' : 'crystal-shadow-dark') : ''}`}
         >
           <svg
             width="140"
