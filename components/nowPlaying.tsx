@@ -16,7 +16,6 @@ export const NowPlaying: React.FC = () => {
 
         const data = await response.json();
         
-        // Правильная навигация по объекту AzuraCast API
         const song = data.now_playing?.song;
         const title = song?.title || 'Unknown Title';
         const artist = song?.artist || '';
@@ -38,6 +37,11 @@ export const NowPlaying: React.FC = () => {
   return (
     <div className="crystal-text">
       Now Playing: {currentTitle} – {currentArtist}
+      {/* NOW LIVE FROM AFP */}
     </div>
+
+    // <a className="crystal-text" href={'https://t.me/aktruepizza/790'} target="_blank">
+    //   NOW LIVE FROM AFP
+    // </a>
   );
 };

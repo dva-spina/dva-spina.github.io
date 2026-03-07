@@ -16,12 +16,12 @@ export const CrystalLogo: React.FC<CrystalLogoProps> = ({ theme, isMuted, onClic
     
     <div className="flex flex-col items-center gap-4 relative">
       <div className={`crystal-text absolute -top-6 transition-opacity ${isMuted ? 'opacity-100' : 'opacity-0'}`}>
-        Press to Play
+        Press to Enable Sound
       </div>
       <button
         onClick={onClick} 
         className={`crystal-button ${!isMuted ? 'unmuted' : ''}`}
-        aria-label={isMuted ? "Unmute Radio" : "Mute Radio"}
+        aria-label={isMuted ? "Enable sound" : "Disable sound"}
       >
         <div 
           className={`crystal-svg ${!isMuted ? (theme === 'light' ? 'crystal-shadow-light' : 'crystal-shadow-dark') : ''}`}
